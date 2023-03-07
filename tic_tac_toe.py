@@ -42,12 +42,14 @@ class TicTacToe:
 
     def place_marker(self, symbol, row, column):
         if symbol not in self._FIELD_CHARS:
-            raise Exception(f"{symbol} is not an accepted char. Use ({', '.join(self._FIELD_CHARS)})")
+            raise Exception(f"{symbol} is not an accepted char. Use ({', '.join(self._FIELD_CHARS)}).")
         if self._is_within_range(row) and self._is_within_range(column):
-            raise Exception(f"Position ({row}, {column}) exceeds board range")
+            raise Exception(f"Position ({row}, {column}) exceeds board range.")
         if marker := self._board[row][column] in self._FIELD_CHARS:
             raise Exception(f"Cannot place marker in ({row}, {column}) "
                             f"as a player has already placed a {marker} there.")
+        if self._current_player != symbol:
+            raise Exception(f"Other player's turn.")
         self._board[row][column] = symbol
 
     def check_state(self) -> State:
