@@ -3,13 +3,15 @@ from state import State
 
 
 class TicTacToe:
-    _FIELD_CHARS = ('O', 'X')
-    _BLANK_CHAR = '-'
+    _NAUGHT = 'O'
+    _CROSS = 'X'
+    _BLANK = '-'
+    _FIELD_CHARS = (_NAUGHT, _CROSS)
     _BOARD_SIZE = 3
 
     def __init__(self, board_size: int | None = None):
         self._maybe_change_board_size(board_size)
-        self._current_player = self._FIELD_CHARS[1]
+        self._current_player = self._CROSS
         self._board = self._create_board()
 
     def _maybe_change_board_size(self, board_size):
@@ -18,13 +20,25 @@ class TicTacToe:
 
     def _create_board(self):
         # init with blank char
-        return [[self._BLANK_CHAR] * self._BOARD_SIZE for _ in range(self._BOARD_SIZE)]
+        return [[self._BLANK] * self._BOARD_SIZE for _ in range(self._BOARD_SIZE)]
 
     def _get_winner(self, char):
-        return {self._FIELD_CHARS[0]: State.NAUGHT_WON, self._FIELD_CHARS[1]: State.CROSS_WON}[char]
+        match char:
+            case self._NAUGHT:
+                return State.NAUGHT_WON
+            case self._CROSS:
+                return State.CROSS_WON
+            case _:
+                return False
 
-    def _get_turn(self, char):
-        return {self._FIELD_CHARS[0]: State.NAUGHT_TURN, self._FIELD_CHARS[1]: State.CROSS_TURN}[char]
+    def _get_turn(self):
+        match self._current_player:
+            case self._NAUGHT:
+                return State.NAUGHT_TURN
+            case self._CROSS:
+                return State.CROSS_TURN
+            case _:
+                raise Exception(f"character '{self._current_player}' is not a valid player")
 
     def place_marker(self, symbol, row, column):
         if symbol not in self._FIELD_CHARS:
@@ -37,29 +51,28 @@ class TicTacToe:
         self._board[row][column] = symbol
 
     def check_state(self) -> State:
+        is_char = lambda char: (c == char for c in row)
         diagonal_left_to_right = []
         diagonal_right_to_left = []
         diag_idx = 0
-        state = State.DRAW
+        have_seen_blank_char = False
         for row in self._board:
-            if row[0] != self._BLANK_CHAR and all(row):
-                state = row[0]
-                break
+            if any(is_char(self._BLANK)):
+                have_seen_blank_char = True
+            elif all(is_char(self._NAUGHT)) or all(is_char(self._CROSS)):
+                return self._get_winner(row[0])
             inverse_diag_idx = self._BOARD_SIZE - diag_idx - 1
             diagonal_left_to_right.append(row[diag_idx][diag_idx])
             diagonal_right_to_left.append(row[inverse_diag_idx][inverse_diag_idx])
             diag_idx += 1
 
-        if not state and diagonal_left_to_right[0] != self._BLANK_CHAR and all(diagonal_left_to_right):
-            state = diagonal_left_to_right[0]
-        elif not state and diagonal_right_to_left[0] != self._BLANK_CHAR and all(diagonal_right_to_left):
-            state = diagonal_right_to_left[0]
+        if diagonal_left_to_right[0] != self._BLANK != diagonal_right_to_left[0] \
+                and (all(diagonal_left_to_right) or all(diagonal_right_to_left)):
+            return self._get_winner(diagonal_left_to_right[0]) or self._get_winner(diagonal_right_to_left[0])
 
-        # TODO: deal with other states
-
-        if state:
-            return self._get_winner(state)
-
+        if have_seen_blank_char:
+            return self._get_turn()
+        return State.DRAW
 
     def _is_within_range(self, v):
         return 0 <= v < self._BOARD_SIZE
