@@ -7,7 +7,9 @@ class TicTacToe:
     BLANK_CHAR = '-'
     BOARD_SIZE = 3
 
-    def __init__(self):
+    def __init__(self, board_size: int | None = None):
+        if board_size is not None:
+            self.BOARD_SIZE = board_size
         self._board = self._create_board()
 
     def _create_board(self):
