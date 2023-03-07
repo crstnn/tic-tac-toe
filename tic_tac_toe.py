@@ -60,6 +60,7 @@ class TicTacToe:
         if state:
             return self._get_winner(state)
 
+
     def _is_within_range(self, v):
         return 0 <= v < self._BOARD_SIZE
 
