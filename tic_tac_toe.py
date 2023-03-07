@@ -64,8 +64,8 @@ class TicTacToe:
         return 0 <= v < self._BOARD_SIZE
 
     def reset(self, board_size: int | None = None):
-        self._maybe_change_board_size(board_size)
-        self._board = self._create_board()
+        new = TicTacToe(board_size)
+        self.__dict__ = new.__dict__
 
     def print_board(self):
         underline_on = "\033[4m"
