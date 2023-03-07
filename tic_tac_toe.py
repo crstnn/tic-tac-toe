@@ -77,9 +77,9 @@ class TicTacToe:
     def _is_within_range(self, v):
         return 0 <= v < self._BOARD_SIZE
 
-    def reset(self, board_size: int | None = None):
-        new = TicTacToe(board_size)
-        self.__dict__ = new.__dict__
+    def reset(self):
+        new_tic_tac_toe = TicTacToe(self._BOARD_SIZE)
+        self.__dict__ = new_tic_tac_toe.__dict__
 
     def print_board(self):
         underline_on = "\033[4m"
