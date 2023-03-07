@@ -52,3 +52,15 @@ def test_change_of_turn(board_size):
     t.place_marker(Token.CROSS, 1, 1)
     t.place_marker(Token.NAUGHT, 1, 2)
     t.place_marker(Token.CROSS, 2, 2)
+    if board_size == 3:
+        assert t.check_state() == State.CROSS_WON
+
+@pytest.mark.parametrize("board_size", BOARD_SIZES)
+def test_reset(board_size):
+    t = TicTacToe(board_size=board_size)
+    t.place_marker(Token.CROSS, 1, 1)
+    t.place_marker(Token.NAUGHT, 0, 0)
+    t.reset()
+    assert t._board == t._create_board()
+
+
