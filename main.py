@@ -3,4 +3,4 @@ from tic_tac_toe import TicTacToe
 
 tic_tac_toe = TicTacToe()
 
-tic_tac_toe.print_board()
+print(tic_tac_toe)

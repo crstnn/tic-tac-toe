@@ -83,11 +83,13 @@ class TicTacToe:
         new_tic_tac_toe = TicTacToe(self._BOARD_SIZE)
         self.__dict__ = new_tic_tac_toe.__dict__
 
-    def print_board(self):
+    def __str__(self):
         underline_on = "\033[4m"
         underline_off = "\033[0m"
 
         heading_numbers = (str(col_idx + 1) for col_idx in range(self._BOARD_SIZE))
-        print(f"{underline_on} | {' '.join(heading_numbers)}{underline_off}")
+        return_str = [f"{underline_on} | {' '.join(heading_numbers)}{underline_off}"]
         for row_idx, row in enumerate(self._board):
-            print("%d| %s" % (row_idx + 1, " ".join(row)))
+            return_str.append(f"{row_idx + 1}| {' '.join(row)}")
+
+        return '\n'.join(return_str)
