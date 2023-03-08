@@ -26,7 +26,7 @@ def test_winner_diagonal1(board_size):
 @pytest.mark.parametrize("board_size", BOARD_SIZES)
 def test_winner_diagonal2(board_size):
     t = TicTacToe(board_size=board_size)
-    t._board[t._BOARD_SIZE - 1][t._BOARD_SIZE - 1] = Token.NAUGHT
+    t._board[0][0] = Token.NAUGHT
     create_diagonal(t, Token.CROSS, Position(t._BOARD_SIZE - 1, 0), Position(-1, 1))
     assert t.check_state() == State.CROSS_WON
 
