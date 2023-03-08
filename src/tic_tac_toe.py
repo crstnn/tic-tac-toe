@@ -55,8 +55,8 @@ class TicTacToe:
         is_char_generator = lambda char: lambda span: (c == char for c in span)
         is_naught_generator = is_char_generator(Token.NAUGHT)
         is_cross_generator = is_char_generator(Token.CROSS)
-        diagonal_left_to_right = []
-        diagonal_right_to_left = []
+        diag_left_to_right = []
+        diag_right_to_left = []
         have_seen_blank_char = False
         for idx in range(self._BOARD_SIZE):
             row = self._board[idx]
@@ -67,12 +67,13 @@ class TicTacToe:
                     or all(is_naught_generator(column)) or all(is_cross_generator(column)):
                 return self._get_winner(self._board[idx][idx])
             inverse_diag_idx = self._BOARD_SIZE - idx - 1
-            diagonal_left_to_right.append(self._board[idx][idx])
-            diagonal_right_to_left.append(self._board[inverse_diag_idx][inverse_diag_idx])
+            diag_left_to_right.append(self._board[idx][idx])
+            diag_right_to_left.append(self._board[inverse_diag_idx][idx])
 
-        if diagonal_left_to_right[0] != Token.BLANK != diagonal_right_to_left[0] \
-                and (all(diagonal_left_to_right) or all(diagonal_right_to_left)):
-            return self._get_winner(diagonal_left_to_right[0]) or self._get_winner(diagonal_right_to_left[0])
+        if diag_left_to_right[0] != Token.BLANK and all(is_char_generator(diag_left_to_right[0])(diag_left_to_right)):
+            return self._get_winner(diag_left_to_right[0])
+        if diag_right_to_left[0] != Token.BLANK and all(is_char_generator(diag_right_to_left[0])(diag_right_to_left)):
+            return self._get_winner(diag_right_to_left[0])
 
         if have_seen_blank_char:
             return self._get_turn()
