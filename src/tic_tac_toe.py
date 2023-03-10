@@ -10,6 +10,11 @@ class TicTacToe:
     def __init__(self, board_size: int | None = None):
         self._maybe_change_board_size(board_size)
         self._current_player: int = 1  # CROSS always starts
+        self.col_stat = [self._create_statistic() for _ in range(self._BOARD_SIZE)]
+        self.row_stat = [self._create_statistic() for _ in range(self._BOARD_SIZE)]
+        self.diag_left_to_right_stat = self._create_statistic()
+        self.diag_right_to_left_stat = self._create_statistic()
+        self.total_placements = 0
         self._board = self._create_board()
 
     def _maybe_change_board_size(self, board_size):
@@ -20,25 +25,28 @@ class TicTacToe:
         # init with blank char
         return [[Token.BLANK] * self._BOARD_SIZE for _ in range(self._BOARD_SIZE)]
 
-    def _get_winner(self, char):
-        match char:
-            case Token.NAUGHT:
+    def _create_statistic(self):
+        return dict(zip(self._FIELD_CHARS, (0, 0)))
+
+    def _get_winner(self):
+        match self._current_player:
+            case 0:
                 return State.NAUGHT_WON
-            case Token.CROSS:
+            case 1:
                 return State.CROSS_WON
             case _:
                 return False
 
     def _get_turn(self):
         match self._current_player:
-            case Token.NAUGHT:
+            case 0:
                 return State.NAUGHT_TURN
-            case Token.CROSS:
+            case 1:
                 return State.CROSS_TURN
             case _:
-                raise Exception(f"character '{self._current_player}' is not a valid player")
+                raise Exception(f"Character '{self._current_player}' is not a valid player")
 
-    def place_marker(self, symbol, row, column):
+    def place_marker(self, symbol, row, column) -> State:
         if symbol not in self._FIELD_CHARS:
             raise Exception(f"{symbol} is not an accepted char. Use ({', '.join(c.value for c in self._FIELD_CHARS)}).")
         if not self._is_within_range(row) or not self._is_within_range(column):
@@ -49,35 +57,31 @@ class TicTacToe:
         if self._FIELD_CHARS[self._current_player] != symbol:
             raise Exception(f"Other player's turn.")
         self._board[row][column] = symbol
+        state = self._check_state(row, column)
         self._current_player = 1 - self._current_player  # flip bit
+        return state
 
-    def check_state(self) -> State:
-        is_char_generator = lambda char: lambda span: (c == char for c in span)
-        is_naught_generator = is_char_generator(Token.NAUGHT)
-        is_cross_generator = is_char_generator(Token.CROSS)
-        diag_left_to_right = []
-        diag_right_to_left = []
-        have_seen_blank_char = False
-        for idx in range(self._BOARD_SIZE):
-            row = self._board[idx]
-            column = tuple(self._board[i][idx] for i in range(self._BOARD_SIZE))
-            if any(is_char_generator(Token.BLANK)(row)):
-                have_seen_blank_char = True
-            if all(is_naught_generator(row)) or all(is_cross_generator(row)) \
-                    or all(is_naught_generator(column)) or all(is_cross_generator(column)):
-                return self._get_winner(self._board[idx][idx])
-            inverse_diag_idx = self._BOARD_SIZE - idx - 1
-            diag_left_to_right.append(self._board[idx][idx])
-            diag_right_to_left.append(self._board[inverse_diag_idx][idx])
+    def _check_state(self, curr_placement_row, curr_placement_column) -> State:
+        symbol = self._board[curr_placement_row][curr_placement_column]
 
-        if diag_left_to_right[0] != Token.BLANK and all(is_char_generator(diag_left_to_right[0])(diag_left_to_right)):
-            return self._get_winner(diag_left_to_right[0])
-        if diag_right_to_left[0] != Token.BLANK and all(is_char_generator(diag_right_to_left[0])(diag_right_to_left)):
-            return self._get_winner(diag_right_to_left[0])
+        if curr_placement_row == curr_placement_column:
+            self.diag_left_to_right_stat[symbol] += 1
+        if curr_placement_row + curr_placement_column == self._BOARD_SIZE - 1:
+            self.diag_right_to_left_stat[symbol] += 1
+        self.row_stat[curr_placement_row][symbol] += 1
+        self.col_stat[curr_placement_column][symbol] += 1
+        self.total_placements += 1
 
-        if have_seen_blank_char:
-            return self._get_turn()
-        return State.DRAW
+        if self.row_stat[curr_placement_row][symbol] == self._BOARD_SIZE \
+                or self.col_stat[curr_placement_column][symbol] == self._BOARD_SIZE \
+                or self.diag_left_to_right_stat[symbol] == self._BOARD_SIZE\
+                or self.diag_right_to_left_stat[symbol] == self._BOARD_SIZE:
+            return self._get_winner()
+
+        if self.total_placements == self._BOARD_SIZE ** 2:
+            return State.DRAW
+
+        return self._get_turn()
 
     def _is_within_range(self, v):
         return 0 <= v < self._BOARD_SIZE
