@@ -5,16 +5,17 @@ from .token import Token
 
 class TicTacToe:
     _FIELD_CHARS = (Token.NAUGHT, Token.CROSS)
-    _BOARD_SIZE = 3
+    _BOARD_SIZE = 3  # can be variable
 
     def __init__(self, board_size: int | None = None):
         self._maybe_change_board_size(board_size)
         self._current_player: int = 1  # CROSS always starts
+        self._state: State = self._get_turn()  # CROSS always starts
         self.col_stat = [self._create_statistic() for _ in range(self._BOARD_SIZE)]
         self.row_stat = [self._create_statistic() for _ in range(self._BOARD_SIZE)]
-        self.diag_left_to_right_stat = self._create_statistic()
-        self.diag_right_to_left_stat = self._create_statistic()
-        self.total_placements = 0
+        self._diag_negative_gradient_stat = self._create_statistic()
+        self._diag_positive_gradient_stat = self._create_statistic()
+        self._total_placements = 0
         self._board = self._create_board()
 
     def _maybe_change_board_size(self, board_size):
@@ -57,28 +58,31 @@ class TicTacToe:
         if self._FIELD_CHARS[self._current_player] != symbol:
             raise Exception(f"Other player's turn.")
         self._board[row][column] = symbol
-        state = self._check_state(row, column)
+        self._state = self._check_state(row, column)
         self._current_player = 1 - self._current_player  # flip bit
-        return state
+        return self._state
+
+    def get_state(self):
+        return self._state
 
     def _check_state(self, curr_placement_row, curr_placement_column) -> State:
         symbol = self._board[curr_placement_row][curr_placement_column]
 
         if curr_placement_row == curr_placement_column:
-            self.diag_left_to_right_stat[symbol] += 1
+            self._diag_negative_gradient_stat[symbol] += 1
         if curr_placement_row + curr_placement_column == self._BOARD_SIZE - 1:
-            self.diag_right_to_left_stat[symbol] += 1
+            self._diag_positive_gradient_stat[symbol] += 1
         self.row_stat[curr_placement_row][symbol] += 1
         self.col_stat[curr_placement_column][symbol] += 1
-        self.total_placements += 1
+        self._total_placements += 1
 
         if self.row_stat[curr_placement_row][symbol] == self._BOARD_SIZE \
                 or self.col_stat[curr_placement_column][symbol] == self._BOARD_SIZE \
-                or self.diag_left_to_right_stat[symbol] == self._BOARD_SIZE\
-                or self.diag_right_to_left_stat[symbol] == self._BOARD_SIZE:
+                or self._diag_negative_gradient_stat[symbol] == self._BOARD_SIZE \
+                or self._diag_positive_gradient_stat[symbol] == self._BOARD_SIZE:
             return self._get_winner()
 
-        if self.total_placements == self._BOARD_SIZE ** 2:
+        if self._total_placements == self._BOARD_SIZE ** 2:
             return State.DRAW
 
         return self._get_turn()

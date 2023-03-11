@@ -24,6 +24,8 @@ def create_losing_moves(game: TicTacToe, moves_to_miss):
         for column in range(game._BOARD_SIZE):
             if (curr_move := Position(row, column)) not in moves_to_miss:
                 losing_moves.append(curr_move)
+            if len(losing_moves) == len(moves_to_miss):
+                return losing_moves
     return losing_moves
 
 
