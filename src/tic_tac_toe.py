@@ -7,9 +7,9 @@ class TicTacToe:
     _FIELD_CHARS = (Token.NAUGHT, Token.CROSS)
     _BOARD_SIZE = 3  # can be variable
 
-    def __init__(self, board_size: int | None = None):
-        self._maybe_change_board_size(board_size)
-        self._current_player: int = 1  # CROSS always starts
+    def __init__(self, board_size: int = 3):
+        self._BOARD_SIZE = board_size
+        self._current_player_turn: int = 1  # CROSS always starts
         self._state: State = self._get_turn()  # CROSS always starts
         self.col_stat = [self._create_statistic() for _ in range(self._BOARD_SIZE)]
         self.row_stat = [self._create_statistic() for _ in range(self._BOARD_SIZE)]
@@ -17,10 +17,6 @@ class TicTacToe:
         self._diag_positive_gradient_stat = self._create_statistic()
         self._total_placements = 0
         self._board = self._create_board()
-
-    def _maybe_change_board_size(self, board_size):
-        if board_size is not None:
-            self._BOARD_SIZE = board_size
 
     def _create_board(self):
         # init with blank char
@@ -30,7 +26,7 @@ class TicTacToe:
         return dict(zip(self._FIELD_CHARS, (0, 0)))
 
     def _get_winner(self):
-        match self._current_player:
+        match self._current_player_turn:
             case 0:
                 return State.NAUGHT_WON
             case 1:
@@ -39,34 +35,38 @@ class TicTacToe:
                 return False
 
     def _get_turn(self):
-        match self._current_player:
+        match self._current_player_turn:
             case 0:
                 return State.NAUGHT_TURN
             case 1:
                 return State.CROSS_TURN
             case _:
-                raise Exception(f"Character '{self._current_player}' is not a valid player")
+                raise Exception(f"Character '{self._current_player_turn}' is not a valid player")
+
+    def _change_turn(self):
+        self._current_player_turn = 1 - self._current_player_turn  # flip bit
+
+    @property
+    def state(self):
+        return self._state
 
     def place_marker(self, symbol, row, column) -> State:
         if symbol not in self._FIELD_CHARS:
             raise Exception(f"{symbol} is not an accepted char. Use ({', '.join(c.value for c in self._FIELD_CHARS)}).")
-        if not self._is_within_range(row) or not self._is_within_range(column):
+        if not self.is_within_range(row) or not self.is_within_range(column):
             raise Exception(f"Position ({row}, {column}) exceeds board range.")
         if (marker := self._board[row][column]) in self._FIELD_CHARS:
             raise Exception(f"Cannot place marker in ({row}, {column}) "
                             f"as a player has already placed a {marker} there.")
-        if self._FIELD_CHARS[self._current_player] != symbol:
+        if self._FIELD_CHARS[self._current_player_turn] != symbol:
             raise Exception(f"Other player's turn.")
-        self._board[row][column] = symbol
-        self._state = self._check_state(row, column)
-        self._current_player = 1 - self._current_player  # flip bit
+        self._update_state(symbol, row, column)
+        self._state = self._check_state(symbol, row, column)
+        self._change_turn()
         return self._state
 
-    def get_state(self):
-        return self._state
-
-    def _check_state(self, curr_placement_row, curr_placement_column) -> State:
-        symbol = self._board[curr_placement_row][curr_placement_column]
+    def _update_state(self, symbol, curr_placement_row, curr_placement_column):
+        self._board[curr_placement_row][curr_placement_column] = symbol
 
         if curr_placement_row == curr_placement_column:
             self._diag_negative_gradient_stat[symbol] += 1
@@ -75,6 +75,8 @@ class TicTacToe:
         self.row_stat[curr_placement_row][symbol] += 1
         self.col_stat[curr_placement_column][symbol] += 1
         self._total_placements += 1
+
+    def _check_state(self, symbol, curr_placement_row, curr_placement_column) -> State:
 
         if self.row_stat[curr_placement_row][symbol] == self._BOARD_SIZE \
                 or self.col_stat[curr_placement_column][symbol] == self._BOARD_SIZE \
@@ -87,7 +89,7 @@ class TicTacToe:
 
         return self._get_turn()
 
-    def _is_within_range(self, v):
+    def is_within_range(self, v):
         return 0 <= v < self._BOARD_SIZE
 
     def reset(self):

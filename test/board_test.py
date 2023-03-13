@@ -11,7 +11,7 @@ BOARD_SIZES = [3, 5, 10, 25, 100, 500]
 
 def create_line_of_moves(game: TicTacToe, square: Position, direction: Position):
     row_col = []
-    while game._is_within_range(square.row) and game._is_within_range(square.column):
+    while game.is_within_range(square.row) and game.is_within_range(square.column):
         row_col.append(Position(square.row, square.column))
         square = Position(square.row + direction.row, square.column + direction.column)
     return row_col
@@ -33,7 +33,7 @@ def do_moves_sequentially(board: TicTacToe, winning_moves, losing_moves, winning
     state = None
     losing_player = 1 - winning_player
     # use internal state to change default starting player (allows for easier testing)
-    board._current_player = losing_player
+    board._current_player_turn = losing_player
     for idx, w_move in enumerate(winning_moves):
         board.place_marker(board._FIELD_CHARS[losing_player], *losing_moves[idx])
         state = board.place_marker(board._FIELD_CHARS[winning_player], *w_move)
