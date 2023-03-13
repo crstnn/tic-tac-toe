@@ -1,18 +1,28 @@
 #!/usr/bin/python3.10
-from .state import State
-from .token import Token
+from enum import IntEnum, StrEnum
 
 
 class TicTacToe:
+    class State(IntEnum):
+        DRAW = 1
+        CROSS_TURN = 2
+        NAUGHT_TURN = 3
+        CROSS_WON = 4
+        NAUGHT_WON = 5
+
+    class Token(StrEnum):
+        NAUGHT = 'O'
+        CROSS = 'X'
+        BLANK = '-'
+
     _FIELD_CHARS = (Token.NAUGHT, Token.CROSS)
-    _BOARD_SIZE = 3  # can be variable
 
     def __init__(self, board_size: int = 3):
-        self._BOARD_SIZE = board_size
+        self.BOARD_LEN = board_size  # can be variable
         self._current_player_turn: int = 1  # CROSS always starts
-        self._state: State = self._get_turn()  # CROSS always starts
-        self.col_stat = [self._create_statistic() for _ in range(self._BOARD_SIZE)]
-        self.row_stat = [self._create_statistic() for _ in range(self._BOARD_SIZE)]
+        self._state: TicTacToe.State = self._get_turn()
+        self.col_stat = [self._create_statistic() for _ in range(self.BOARD_LEN)]
+        self.row_stat = [self._create_statistic() for _ in range(self.BOARD_LEN)]
         self._diag_negative_gradient_stat = self._create_statistic()
         self._diag_positive_gradient_stat = self._create_statistic()
         self._total_placements = 0
@@ -20,7 +30,7 @@ class TicTacToe:
 
     def _create_board(self):
         # init with blank char
-        return [[Token.BLANK] * self._BOARD_SIZE for _ in range(self._BOARD_SIZE)]
+        return [[TicTacToe.Token.BLANK] * self.BOARD_LEN for _ in range(self.BOARD_LEN)]
 
     def _create_statistic(self):
         return dict(zip(self._FIELD_CHARS, (0, 0)))
@@ -28,18 +38,18 @@ class TicTacToe:
     def _get_winner(self):
         match self._current_player_turn:
             case 0:
-                return State.NAUGHT_WON
+                return TicTacToe.State.NAUGHT_WON
             case 1:
-                return State.CROSS_WON
+                return TicTacToe.State.CROSS_WON
             case _:
                 return False
 
     def _get_turn(self):
         match self._current_player_turn:
             case 0:
-                return State.NAUGHT_TURN
+                return TicTacToe.State.NAUGHT_TURN
             case 1:
-                return State.CROSS_TURN
+                return TicTacToe.State.CROSS_TURN
             case _:
                 raise Exception(f"Character '{self._current_player_turn}' is not a valid player")
 
@@ -70,7 +80,7 @@ class TicTacToe:
 
         if curr_placement_row == curr_placement_column:
             self._diag_negative_gradient_stat[symbol] += 1
-        if curr_placement_row + curr_placement_column == self._BOARD_SIZE - 1:
+        if curr_placement_row + curr_placement_column == self.BOARD_LEN - 1:
             self._diag_positive_gradient_stat[symbol] += 1
         self.row_stat[curr_placement_row][symbol] += 1
         self.col_stat[curr_placement_column][symbol] += 1
@@ -78,29 +88,29 @@ class TicTacToe:
 
     def _check_state(self, symbol, curr_placement_row, curr_placement_column) -> State:
 
-        if self.row_stat[curr_placement_row][symbol] == self._BOARD_SIZE \
-                or self.col_stat[curr_placement_column][symbol] == self._BOARD_SIZE \
-                or self._diag_negative_gradient_stat[symbol] == self._BOARD_SIZE \
-                or self._diag_positive_gradient_stat[symbol] == self._BOARD_SIZE:
+        if self.row_stat[curr_placement_row][symbol] == self.BOARD_LEN \
+                or self.col_stat[curr_placement_column][symbol] == self.BOARD_LEN \
+                or self._diag_negative_gradient_stat[symbol] == self.BOARD_LEN \
+                or self._diag_positive_gradient_stat[symbol] == self.BOARD_LEN:
             return self._get_winner()
 
-        if self._total_placements == self._BOARD_SIZE ** 2:
-            return State.DRAW
+        if self._total_placements == self.BOARD_LEN ** 2:
+            return TicTacToe.State.DRAW
 
         return self._get_turn()
 
     def is_within_range(self, v):
-        return 0 <= v < self._BOARD_SIZE
+        return 0 <= v < self.BOARD_LEN
 
     def reset(self):
-        new_tic_tac_toe = TicTacToe(self._BOARD_SIZE)
+        new_tic_tac_toe = TicTacToe(self.BOARD_LEN)
         self.__dict__ = new_tic_tac_toe.__dict__
 
     def __str__(self):
         underline_on = "\033[4m"
         underline_off = "\033[0m"
 
-        heading_numbers = (str(col_idx + 1) for col_idx in range(self._BOARD_SIZE))
+        heading_numbers = (str(col_idx + 1) for col_idx in range(self.BOARD_LEN))
         return_str = [f"{underline_on} | {' '.join(heading_numbers)}{underline_off}"]
         for row_idx, row in enumerate(self._board):
             return_str.append(f"{row_idx + 1}| {' '.join(row)}")
