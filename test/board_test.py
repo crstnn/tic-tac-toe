@@ -34,8 +34,8 @@ def do_moves_sequentially(board: TicTacToe, winning_moves, losing_moves, winning
     # use internal state to change default starting player (allows for easier testing)
     board._current_player_turn = losing_player
     for idx, w_move in enumerate(winning_moves):
-        board.place_marker(board._FIELD_CHARS[losing_player], *losing_moves[idx])
-        state = board.place_marker(board._FIELD_CHARS[winning_player], *w_move)
+        board.place_marker(board.FIELD_CHARS[losing_player], *losing_moves[idx])
+        state = board.place_marker(board.FIELD_CHARS[winning_player], *w_move)
     return state
 
 

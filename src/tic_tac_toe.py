@@ -15,7 +15,7 @@ class TicTacToe:
         CROSS = 'X'
         BLANK = '-'
 
-    _FIELD_CHARS = (Token.NAUGHT, Token.CROSS)
+    FIELD_CHARS = (Token.NAUGHT, Token.CROSS)
 
     def __init__(self, board_size: int = 3):
         self.BOARD_LEN = board_size  # can be variable
@@ -33,7 +33,7 @@ class TicTacToe:
         return [[TicTacToe.Token.BLANK] * self.BOARD_LEN for _ in range(self.BOARD_LEN)]
 
     def _create_statistic(self):
-        return dict(zip(self._FIELD_CHARS, (0, 0)))
+        return dict(zip(self.FIELD_CHARS, (0, 0)))
 
     def _get_winner(self):
         match self._current_player_turn:
@@ -61,14 +61,14 @@ class TicTacToe:
         return self._state
 
     def place_marker(self, symbol, row, column) -> State:
-        if symbol not in self._FIELD_CHARS:
-            raise Exception(f"{symbol} is not an accepted char. Use ({', '.join(c.value for c in self._FIELD_CHARS)}).")
+        if symbol not in self.FIELD_CHARS:
+            raise Exception(f"{symbol} is not an accepted char. Use ({', '.join(self.FIELD_CHARS)}).")
         if not self.is_within_range(row) or not self.is_within_range(column):
             raise Exception(f"Position ({row}, {column}) exceeds board range.")
-        if (marker := self._board[row][column]) in self._FIELD_CHARS:
+        if (marker := self._board[row][column]) in self.FIELD_CHARS:
             raise Exception(f"Cannot place marker in ({row}, {column}) "
                             f"as a player has already placed a {marker} there.")
-        if self._FIELD_CHARS[self._current_player_turn] != symbol:
+        if self.FIELD_CHARS[self._current_player_turn] != symbol:
             raise Exception(f"Other player's turn.")
         self._update_state(symbol, row, column)
         self._state = self._check_state(symbol, row, column)
