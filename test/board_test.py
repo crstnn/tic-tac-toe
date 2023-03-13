@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.11
 import pytest
 from src.tic_tac_toe import TicTacToe
 from collections import namedtuple
