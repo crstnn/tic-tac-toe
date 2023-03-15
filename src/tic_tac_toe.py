@@ -22,8 +22,8 @@ class TicTacToe:
         self._current_player_turn: int = 1  # CROSS always starts
         self._state: TicTacToe.State = self._get_turn()
         self._board = self._create_board()
-        self.col_stat = tuple(self._create_count_stat() for _ in range(self.BOARD_LEN))
-        self.row_stat = tuple(self._create_count_stat() for _ in range(self.BOARD_LEN))
+        self._col_stat = tuple(self._create_count_stat() for _ in range(self.BOARD_LEN))
+        self._row_stat = tuple(self._create_count_stat() for _ in range(self.BOARD_LEN))
         self._diag_negative_gradient_stat = self._create_count_stat()
         self._diag_positive_gradient_stat = self._create_count_stat()
         self._total_placements = 0
@@ -60,6 +60,14 @@ class TicTacToe:
     def state(self):
         return self._state
 
+    @property
+    def board_copy(self):
+        """
+        Returns a copy of the board.
+        Should only be needed if board properties need to be inspected otherwise use __str__ to see board.
+        """
+        return [row[:] for row in self._board]
+
     def place_marker(self, symbol, row, column) -> State:
         if symbol not in self.PLAYER_TOKENS:
             raise Exception(f"{symbol} is not an accepted char. Use ({', '.join(self.PLAYER_TOKENS)}).")
@@ -80,14 +88,14 @@ class TicTacToe:
             self._diag_negative_gradient_stat[symbol] += 1
         if curr_placement_row + curr_placement_column == self.BOARD_LEN - 1:
             self._diag_positive_gradient_stat[symbol] += 1
-        self.row_stat[curr_placement_row][symbol] += 1
-        self.col_stat[curr_placement_column][symbol] += 1
+        self._row_stat[curr_placement_row][symbol] += 1
+        self._col_stat[curr_placement_column][symbol] += 1
         self._total_placements += 1
 
     def _check_state(self, symbol, curr_placement_row, curr_placement_column) -> State:
 
-        if self.BOARD_LEN in (self.row_stat[curr_placement_row][symbol],
-                              self.col_stat[curr_placement_column][symbol],
+        if self.BOARD_LEN in (self._row_stat[curr_placement_row][symbol],
+                              self._col_stat[curr_placement_column][symbol],
                               self._diag_negative_gradient_stat[symbol],
                               self._diag_positive_gradient_stat[symbol]):
             return self._get_winner()
