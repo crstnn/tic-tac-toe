@@ -15,25 +15,25 @@ class TicTacToe:
         CROSS = 'X'
         BLANK = '-'
 
-    FIELD_CHARS = (Token.NAUGHT, Token.CROSS)
+    PLAYER_TOKENS = (Token.NAUGHT, Token.CROSS)
 
     def __init__(self, board_size: int = 3):
         self.BOARD_LEN = board_size  # can be variable
         self._current_player_turn: int = 1  # CROSS always starts
         self._state: TicTacToe.State = self._get_turn()
-        self.col_stat = [self._create_statistic() for _ in range(self.BOARD_LEN)]
-        self.row_stat = [self._create_statistic() for _ in range(self.BOARD_LEN)]
-        self._diag_negative_gradient_stat = self._create_statistic()
-        self._diag_positive_gradient_stat = self._create_statistic()
-        self._total_placements = 0
         self._board = self._create_board()
+        self.col_stat = tuple(self._create_count_stat() for _ in range(self.BOARD_LEN))
+        self.row_stat = tuple(self._create_count_stat() for _ in range(self.BOARD_LEN))
+        self._diag_negative_gradient_stat = self._create_count_stat()
+        self._diag_positive_gradient_stat = self._create_count_stat()
+        self._total_placements = 0
 
     def _create_board(self):
         # init with blank char
         return [[TicTacToe.Token.BLANK] * self.BOARD_LEN for _ in range(self.BOARD_LEN)]
 
-    def _create_statistic(self):
-        return dict(zip(self.FIELD_CHARS, (0, 0)))
+    def _create_count_stat(self) -> dict[str, int]:
+        return {t: 0 for t in self.PLAYER_TOKENS}
 
     def _get_winner(self):
         match self._current_player_turn:
@@ -61,23 +61,21 @@ class TicTacToe:
         return self._state
 
     def place_marker(self, symbol, row, column) -> State:
-        if symbol not in self.FIELD_CHARS:
-            raise Exception(f"{symbol} is not an accepted char. Use ({', '.join(self.FIELD_CHARS)}).")
+        if symbol not in self.PLAYER_TOKENS:
+            raise Exception(f"{symbol} is not an accepted char. Use ({', '.join(self.PLAYER_TOKENS)}).")
         if not self.is_within_range(row) or not self.is_within_range(column):
             raise Exception(f"Position ({row}, {column}) exceeds board range.")
-        if (marker := self._board[row][column]) in self.FIELD_CHARS:
-            raise Exception(f"Cannot place marker in ({row}, {column}) "
-                            f"as a player has already placed a {marker} there.")
-        if self.FIELD_CHARS[self._current_player_turn] != symbol:
+        if (marker := self._board[row][column]) in self.PLAYER_TOKENS:
+            raise Exception(f"Cannot place marker in ({row}, {column}) as a player has already placed {marker} there.")
+        if self.PLAYER_TOKENS[self._current_player_turn] != symbol:
             raise Exception(f"Other player's turn.")
-        self._update_state(symbol, row, column)
+        self._board[row][column] = symbol
+        self._update_count_stats(symbol, row, column)
         self._state = self._check_state(symbol, row, column)
         self._change_turn()
         return self._state
 
-    def _update_state(self, symbol, curr_placement_row, curr_placement_column):
-        self._board[curr_placement_row][curr_placement_column] = symbol
-
+    def _update_count_stats(self, symbol, curr_placement_row, curr_placement_column):
         if curr_placement_row == curr_placement_column:
             self._diag_negative_gradient_stat[symbol] += 1
         if curr_placement_row + curr_placement_column == self.BOARD_LEN - 1:
@@ -88,10 +86,10 @@ class TicTacToe:
 
     def _check_state(self, symbol, curr_placement_row, curr_placement_column) -> State:
 
-        if self.row_stat[curr_placement_row][symbol] == self.BOARD_LEN \
-                or self.col_stat[curr_placement_column][symbol] == self.BOARD_LEN \
-                or self._diag_negative_gradient_stat[symbol] == self.BOARD_LEN \
-                or self._diag_positive_gradient_stat[symbol] == self.BOARD_LEN:
+        if self.BOARD_LEN in (self.row_stat[curr_placement_row][symbol],
+                              self.col_stat[curr_placement_column][symbol],
+                              self._diag_negative_gradient_stat[symbol],
+                              self._diag_positive_gradient_stat[symbol]):
             return self._get_winner()
 
         if self._total_placements == self.BOARD_LEN ** 2:
